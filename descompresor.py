@@ -3,7 +3,6 @@ import time
 ##                                 Descompresor Mágico                                       ##
 ###############################################################################################
 start_time = time.time()
-
 def byte_to_binary(byte):
     # Convierte el byte en un número entero utilizando la función int.from_bytes()
     num = int.from_bytes(byte, byteorder='big')
@@ -13,8 +12,7 @@ def byte_to_binary(byte):
     
     # Rellena la cadena binaria con ceros a la izquierda si es necesario
     padding = '0' * (8 - len(binary_str))
-    binary_str = padding + binary_str
-    
+    binary_str = padding + binary_str  
     return binary_str
 Lines = []
 print("leyendo")
