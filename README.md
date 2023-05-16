@@ -1,0 +1,1 @@
+# Compresor_Descompresor_Paralelizado
