@@ -1,21 +1,3 @@
-from mpi4py import MPI
-import sys
-import time
-start = time.time()
-def primeCheck(num):
-    divisores = 0
-    for ii in range(2, num):
-        if num % ii == 0:
-            divisores += 1
-            break
-    if divisores == 0:  
-        return True
-    else:
-        return False
-
-comm = MPI.COMM_WORLD  # Comunicador entre procesos
-import time
-from mpi4py import MPI
 ###############################################################################################
 ##                                 Descompresor Mágico                                       ##
 ###############################################################################################
