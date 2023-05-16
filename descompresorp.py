@@ -1,3 +1,6 @@
+from mpi4py import MPI
+import sys
+import time
 ###############################################################################################
 ##                                 Descompresor Mágico                                       ##
 ###############################################################################################
@@ -19,49 +22,38 @@ if rank == 0:
       
       return binary_str
   Lines = []
-  print("leyendo")
   for line in open("comprimido.elmejorprofesor", 'rb').readlines():
     Lines.append(line)
   my_string=[]
-  print("terminar leer")
-
-  print("Traducir a bytes")
   for h in Lines:
     for t in h:
       my_string.append(t.to_bytes((t.bit_length() + 7) // 8, byteorder='big'))
   re = []
-  print("terminada traduccion")
-
-  print("Construir cadena a traducir")
   for cont in range(len(my_string)):
     if (cont>3):
       if(my_string[cont]==b"%"and my_string[cont-1]==b"@" and my_string[cont-2]==b"%"):
         re = []
       else:
         re.append(my_string[cont])
-  print("cadena terminada")
   cad = []
-  print("converitr cadena a binaria")
   for h in re:
     cad.append(byte_to_binary(h))
   cad = "".join(cad)
-  print("binario terminado")
   for i in range(8):
     if cad[0] == "0":
       cad = cad[1:]
     else:
       break           
-  print("Contruir diccionario")
   a=b"".join(my_string)
   linea = a.split(b"%@%")
   letter_binary2 = {}
+  letter_binary3 = {}
   i=0
   while i < len(linea)-2:
     codbin = linea[i+1].decode()
     letter_binary2[codbin]=linea[i]
+    letter_binary3[linea[i]]=codbin
     i=i+2
-  print(letter_binary2)
-  print("Dicionario construido")
   cadena_binaria = linea[len(linea)-2].decode() + cad
   for h in range(size):
     cadena_nodo = cadena_binaria[h*len(cadena_binaria)//size:(h+1)*len(cadena_binaria)//size ]
@@ -77,7 +69,6 @@ if (rank !=0):
    recibido = comm.recv(source=0)
    cadi = recibido[0]
    letter_binary2 = recibido[2]
-print(len(cadi))
 for digit in cadi:
   digit_bit = digit_bit + digit
   if(digit_bit in letter_binary2):
@@ -86,15 +77,35 @@ for digit in cadi:
   if (len(cadenita)>packsize/size):
     uncompressed_string.append(cadenita)
     cadenita = b""
+uncompressed_string.append(cadenita)
 if (rank!=0):
-   comm.send([uncompressed_string,rank],dest=0)
+   comm.send([uncompressed_string,rank,digit_bit],dest=0)
 else:
-  print("falto yo")
+  sobrante = digit_bit
   code = b"".join(uncompressed_string)
   for h in range(size):
     if (h!=0):    
       aux = comm.recv(source=h)
-      code = code + b"".join(aux[0])
+      codigo = b"".join(aux[0])
+      acorregir = codigo[0:20]
+      byte = b""
+      cadenabin = ""
+      for jj in acorregir:
+        y = jj.to_bytes((t.bit_length() + 7) // 8, byteorder='big')
+        byte = byte+y
+        if byte in letter_binary3:
+          cadenabin = cadenabin+letter_binary3[byte]
+          byte = b""
+      newbinary = sobrante +cadenabin
+      sobrante = aux[2]
+      digit_bit=""
+      cadenit = b""
+      for digit in newbinary:
+        digit_bit = digit_bit + digit
+        if(digit_bit in letter_binary2):
+          cadenit = cadenit + letter_binary2[digit_bit]    
+          digit_bit = ""
+      code = code+cadenit+codigo[20:len(codigo)]
   # Se guarda el archivo en la ubicación especificada
   with open("descomprimido-elmejorprofesor.txt", "wb") as f:
       f.write(code)
