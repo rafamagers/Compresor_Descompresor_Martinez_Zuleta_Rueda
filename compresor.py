@@ -131,8 +131,7 @@ bitstring = binario_a_bytes(bitstring)
 with open("comprimido.elmejorprofesor", "wb") as f:
     f.write(arbol+id.encode()+b"%@%"+bitstring)
 # Indicadores
-print("Archivo comprimido exitosamente")
 end_time = time.time()
 tiempo_ejecucion = end_time - start_time
 tiempo_ejecucion_r = round(tiempo_ejecucion, 2)
-print("El tiempo de ejecución fue:",tiempo_ejecucion_r,"segundos")
+print(tiempo_ejecucion_r)

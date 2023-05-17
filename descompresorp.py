@@ -22,7 +22,7 @@ if rank == 0:
       
       return binary_str
   Lines = []
-  for line in open("comprimido.elmejorprofesor", 'rb').readlines():
+  for line in open(sys.argv[1], 'rb').readlines():
     Lines.append(line)
   my_string=[]
   for h in Lines:
@@ -107,10 +107,10 @@ else:
           digit_bit = ""
       code = code+cadenit+codigo[20:len(codigo)]
   # Se guarda el archivo en la ubicación especificada
-  with open("descomprimido-elmejorprofesor.txt", "wb") as f:
+  with open("descomprimidop-elmejorprofesor.txt", "wb") as f:
       f.write(code)
   # Indicadores
   end_time = time.time()
   tiempo_ejecucion = end_time - start_time
   tiempo_ejecucion_r = round(tiempo_ejecucion, 2)
-  print("El tiempo de ejecución fue:",tiempo_ejecucion_r,"segundos")
+  print(tiempo_ejecucion_r)
