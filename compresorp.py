@@ -48,9 +48,25 @@ def combine(nodes):
   huffman_tree.append(nodes[0])
   return huffman_tree
 
-if rank ==0:
-  Lines = []
+#función que unifica diccionarios
+def unificar_diccionarios(diccionarios):
 
+    resultado = {}  # Diccionario resultante
+    
+    # Iterar sobre cada diccionario en la lista
+    for diccionario in diccionarios:
+        # Iterar sobre cada letra y su aparición en el diccionario actual
+        for letra, aparicion in diccionario.items():
+            if letra in resultado:
+                resultado[letra] += aparicion  # Sumar apariciones de letra existente
+            else:
+                resultado[letra] = aparicion  # Agregar nueva letra al diccionario
+    
+    return resultado
+
+if rank ==0:
+  
+  Lines = []
   for line in open(sys.argv[1], 'rb').readlines():
     Lines.append(line)
   my_string=[]
@@ -58,26 +74,53 @@ if rank ==0:
     for t in h:
       my_string.append(t)
   len_my_string = len(my_string)
-  print("Tiempo lectura archivo: ")
-  print(time.time() - start_time)
-  start_time = time.time()
   # Crea una lista de caracteres y la frecuencia de aparicion de cada uno
+
+  for h in range(size):
+    cadena_leer = my_string[h*len(my_string)//size:(h+1)*len(my_string)//size ]
+    if h!=0:
+       comm.send([cadena_leer],dest=h)
+    else:
+       trozo_leer = cadena_leer
+
+if rank != 0:
+  trozo_leer = comm.recv(source=0)[0]
+
+# Ciclo calcula la frecuencia con la que se repite un caracter en cada proceso por separado
+
+only_letters_temp = []
+dic_temp = {}
+for letter in trozo_leer:
+  if letter not in only_letters_temp:
+    dic_temp[letter] = 1
+    only_letters_temp.append(letter)
+  else:
+    dic_temp[letter] +=1
+
+if (rank!=0):
+   comm.send([only_letters_temp,dic_temp],dest=0)
+else: 
   letters = []
   only_letters = []
+  aux_dic = []
   dic = {}
-  # Ciclo calcula la frecuencia con la que se repite un caracter
-  for letter in my_string:
-    if letter not in only_letters:
-      dic[letter] = 1
-      only_letters.append(letter)
+  for h in range(size):
+    if (h!=0):
+      auxx = comm.recv(source=h)
+      for ii in auxx[0]:
+        if ii not in only_letters:
+          only_letters.append(ii)
+      aux_dic.append(auxx[1])
     else:
-      dic[letter] +=1
+      for ii in only_letters_temp:
+        if ii not in only_letters:
+          only_letters.append(ii)
+      aux_dic.append(dic_temp)
+
+  dic = unificar_diccionarios(aux_dic)
   for clave in dic:
     letters.append([dic[clave],clave])
   nodes = []
-  print("Tiempo construccion dicionario inicial: ")
-  print(time.time() - start_time)
-  start_time = time.time()
   for l in letters:
       ayu = []
       nodes.append([int(l[0]),str(l[1])])  
@@ -88,9 +131,6 @@ if rank ==0:
   # Hace que el arbol empiece descendentemente
   huffman_tree.sort(reverse=True)
   checklist = huffman_tree
-  print("Chacklist hecha: ")
-  print(time.time() - start_time)
-  start_time = time.time()
   # Construye un código binario para cada caracter
   letter_binary = {}
   if len(only_letters) == 1:
@@ -106,27 +146,22 @@ if rank ==0:
           lettercode = lettercode + node[2]
       letter_binary[letter]=lettercode
   # Letras con el código binario
-  print("Tiempo dicionario definitivo: ")
-  print(time.time() - start_time)
-  start_time = time.time()
   arbol = b""
   for lette in letter_binary:
     arbol = arbol+lette.to_bytes((lette.bit_length() + 7) // 8, byteorder='big')+b"%@%"+letter_binary[lette].encode()+b"%@%"
-  # Crea una secuencia de bits con los códigos nuevos
+  # Crea una secuencia de bits con los códigos nuevos.
+  #divicion de la cadena completa, enviandola en los diferentes nodos de trabajo.
   for h in range(size):
     cadena_nodo = my_string[h*len(my_string)//size:(h+1)*len(my_string)//size ]
     if h!=0:
-       comm.send([cadena_nodo,rank,letter_binary],dest=h)
+       comm.send([cadena_nodo,letter_binary],dest=h)
     else:
        mstring = cadena_nodo
-  print("Tiempo hacer arbol: ")
-  print(time.time() - start_time)
-  start_time = time.time()
 
 if (rank !=0):
    recibido = comm.recv(source=0)
    mstring = recibido[0]
-   letter_binary = recibido[2]
+   letter_binary = recibido[1]
 bitstring = ""
 bits = []
 packsize = 40000
@@ -141,9 +176,6 @@ bitstring = "".join(bits)
 if (rank!=0):
    comm.send(bitstring,dest=0)
 else:
-  print("Codificacion paralelizada tiempo: ")
-  print(time.time() - start_time)
-  start_time = time.time()
   for h in range(size):
     if (h!=0):    
       aux = comm.recv(source=h)
@@ -160,7 +192,6 @@ else:
   with open("comprimido.elmejorprofesor", "wb") as f:
       f.write(arbol+id.encode()+b"%@%"+bitstring)
   # Indicadores
-  print("Archivo comprimido exitosamente")
   end_time = time.time()
   tiempo_ejecucion = end_time - start_time
   tiempo_ejecucion_r = round(tiempo_ejecucion, 2)

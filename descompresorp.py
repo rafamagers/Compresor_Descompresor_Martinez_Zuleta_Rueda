@@ -110,7 +110,6 @@ else:
   with open("descomprimido-elmejorprofesor.txt", "wb") as f:
       f.write(code)
   # Indicadores
-  print("Archivo descomprimido exitosamente")
   end_time = time.time()
   tiempo_ejecucion = end_time - start_time
   tiempo_ejecucion_r = round(tiempo_ejecucion, 2)
