@@ -87,7 +87,7 @@ else:
     if (h!=0):    
       aux = comm.recv(source=h)
       codigo = b"".join(aux[0])
-      acorregir = codigo[0:20]
+      acorregir = codigo[0:50]
       byte = b""
       cadenabin = ""
       for jj in acorregir:
@@ -105,7 +105,7 @@ else:
         if(digit_bit in letter_binary2):
           cadenit = cadenit + letter_binary2[digit_bit]    
           digit_bit = ""
-      code = code+cadenit+codigo[20:len(codigo)]
+      code = code+cadenit+codigo[50:len(codigo)]
   # Se guarda el archivo en la ubicación especificada
   with open("descomprimidop-elmejorprofesor.txt", "wb") as f:
       f.write(code)
