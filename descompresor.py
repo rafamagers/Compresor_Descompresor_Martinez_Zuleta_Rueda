@@ -59,7 +59,7 @@ for digit in cadena_binaria:
   if (len(cadenita)>packsize):
     uncompressed_string.append(cadenita)
     cadenita = b""
-umcompressed_string.append(cadenita)
+uncompressed_string.append(cadenita)
 code=b"".join(uncompressed_string)
 # Se guarda el archivo en la ubicación especificada
 with open("descomprimido-elmejorprofesor.txt", "wb") as f:
